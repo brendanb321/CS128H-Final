@@ -1,4 +1,6 @@
 # Chess Group
+https://github.com/brendanb321/CS128H-Final.git
+
 Final project for CS 128 Honors at UIUC.
 
 A simple chess game written in Rust.
