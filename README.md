@@ -5,8 +5,8 @@ Final project for CS 128 Honors at UIUC.
 
 A simple chess game written in Rust.
 
-## Authors
-Brendan Biernacki (bab8), Andrew Yatzkan (yatzkan3), Chaoyi Xu (chaoyix2), Khalid Alotaibi (khalidaa)
+## Author
+Brendan Biernacki (bab8)
 
 ## Project Introduction
 Our project involves building a chess game with all the rules including castle and en passant. We chose this project because we are passionate about chess and find building a chess game a suitable project for Rust.
