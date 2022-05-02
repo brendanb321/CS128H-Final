@@ -24,7 +24,7 @@ pub enum PieceType {
     King
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Player {
     Player1,
     Player2
@@ -34,13 +34,6 @@ pub enum Player {
 pub struct Location {
     pub row: usize,
     pub col: usize
-}
-
-#[derive(Debug)]
-pub enum InvalidMove {
-    AlreadyOccupiedBySamePlayer,
-    OutOfBounds,
-    NotInRange
 }
 
 impl Board {
@@ -81,25 +74,12 @@ impl Board {
         self.board[row][col]
     }
     
-    pub fn move_to(&mut self, mut piece: Piece, new_location: Location) -> Result<(), InvalidMove> {
-        // check if move is valid
-        if !valid_location(new_location) {
-            return Err(InvalidMove::OutOfBounds)
-        } else if self.at_loc(new_location).is_some() && self.at_loc(new_location).unwrap().player == piece.player {
-            return Err(InvalidMove::AlreadyOccupiedBySamePlayer)
-        } else {
-            // make sure the new_location is in the range of the piece
-            let range = piece.range(self);
-            if range.contains(&new_location) {
-                let old_row = piece.location.row;
-                let old_col = piece.location.col;
-                piece.location = new_location;
-                self.board[new_location.row][new_location.col] = Some(piece);
-                self.board[old_row][old_col] = None;
-            }
-            
-        }
-        Ok(())
+    pub fn move_to(&mut self, mut piece: Piece, new_location: Location) {
+        let old_row = piece.location.row;
+        let old_col = piece.location.col;
+        piece.location = new_location;
+        self.board[new_location.row][new_location.col] = Some(piece);
+        self.board[old_row][old_col] = None;
     }
 
     pub fn to_string(&mut self) -> String {
@@ -161,6 +141,7 @@ impl Piece {
         let mut set: HashSet<Location> = std::collections::HashSet::new();
         let row = self.location.row;
         let col = self.location.col;
+
         match self.name {
             PieceType::Pawn => {
                 if self.player == Player::Player1 {
@@ -174,7 +155,7 @@ impl Piece {
                         set.insert(Location::new(row+1, col-1));
                     }
                     if row == 1 && board.at(row+2,col).is_none() {
-                        set.insert(Location::new(row+2,col));
+                        set.insert(Location::new(row+2, col));
                     }
                 } else {
                     if board.at(row-1,col).is_none() {
@@ -186,30 +167,28 @@ impl Piece {
                     if col > 0 && board.at(row-1, col-1).is_some() && board.at(row-1, col-1).unwrap().player != self.player {
                         set.insert(Location::new(row-1, col-1));
                     }
-                    if row == 6 && board.at(row-2,col).is_none() {
-                        set.insert(Location::new(row-2,col));
+                    if row == 6 && board.at(row-2, col).is_none() {
+                        set.insert(Location::new(row-2, col));
                     }
                 }
                 set
             },
             PieceType::Rook => {
-                let mut i: i32 = row.try_into().unwrap();
-                let mut j: i32 = col.try_into().unwrap();
+                let mut i: i32 = row as i32;
+                let mut j: i32 = col as i32;
                 let mut k = 0;
                 loop {
-                    if k == 0 {
-                        i = i+1;
-                    } else if k == 1 {
-                        i = i-1;
-                    } else if k == 2 {
-                        j = j+1;
-                    } else if k == 3 {
-                        j = j-1;
+                    if k < 2 {
+                        i = i + (-1 as i32).pow(k);
+                    } else if k < 4 {
+                        j = j + (-1 as i32).pow(k);
                     } else {
                         return set;
                     }
                     if i < 0 || j < 0 {
                         k = k+1;
+                        i = row as i32;
+                        j = col as i32;
                         continue;
                     }
                     let loc = Location::new(i.try_into().unwrap(), j.try_into().unwrap());
@@ -218,144 +197,109 @@ impl Piece {
                     } else if valid_location(loc) && board.at_loc(loc).unwrap().player != self.player {
                         set.insert(loc);
                         k = k+1;
+                        i = row as i32;
+                        j = col as i32;
                     } else {
                         k = k+1;
+                        i = row as i32;
+                        j = col as i32;
                     }
                 }
             },
             PieceType::Knight => {
-                let mut k = 0;
-                loop {
-                    let mut r: i32 = row.try_into().unwrap();
-                    let mut c: i32 = col.try_into().unwrap();
-                    if k == 0 {
-                        r = r + 2;
-                        c = c + 1;
-                    } else if k == 1 {
-                        r = r + 2;
-                        c = c - 1;
-                    } else if k == 2 {
-                        r = r - 2;
-                        c = c + 1;
-                    } else if k == 3 {
-                        r = r - 2;
-                        c = c - 1;
-                    } else if k == 4 {
-                        r = r + 1;
-                        c = c + 2;
-                    } else if k == 5 {
-                        r = r + 1;
-                        c = c - 2;
-                    } else if k == 6 {
-                        r = r - 1;
-                        c = c + 2;
-                    } else if k == 7 {
-                        r = r - 1;
-                        c = c - 2;
-                    } else {
-                        return set;
+                for k in 0 .. 8 {
+                    let mut r: i32 = row as i32;
+                    let mut c: i32 = col as i32;
+
+                    // loop through all 8 positions
+                    if k < 4 {
+                        r = r + 2 * (-1 as i32).pow(k);
+                        c = c + 1 * (-1 as i32).pow(k/2);
+                    } else if k < 8 {
+                        r = r + 1 * (-1 as i32).pow(k);
+                        c = c + 2 * (-1 as i32).pow(k/2);
                     }
 
                     let loc = Location::new(r.try_into().unwrap(),c.try_into().unwrap());
-                    if valid_location(loc) && (board.at_loc(loc).is_none() || board.at_loc(loc).unwrap().player != self.player) {
+                    if valid_location(loc) && (board.at_loc(loc).is_none() 
+                    || board.at_loc(loc).unwrap().player != self.player) {
                         set.insert(loc);
                     }
-                    k = k+1;
                 }
+                set
             },
             PieceType::Bishop => {
                 let mut i: i32 = row.try_into().unwrap();
                 let mut j: i32 = col.try_into().unwrap();
                 let mut k = 0;
-                loop {
-                    if k == 0 {
-                        i = i+1;
-                        j = j+1;
-                    } else if k == 1 {
-                        i = i+1;
-                        j = j-1;
-                    } else if k == 2 {
-                        i = i-1;
-                        j = j+1;
-                    } else if k == 3 {
-                        i = i-1;
-                        j = j-1;
-                    } else {
-                        return set;
-                    }
+                while k < 4 {
+                    i = i + (-1 as i32).pow(k);
+                    j = j + (-1 as i32).pow(k/2);
                     if i < 0 || j < 0 {
-                        k = k+1;
-                        i = row.try_into().unwrap();
-                        j = col.try_into().unwrap();
+                        k = k + 1;
+                        i = row as i32;
+                        j = col as i32;
+                        continue;
+                    } 
+                    let loc = Location::new(i.try_into().unwrap(), j.try_into().unwrap());
+                    if valid_location(loc) && board.at_loc(loc).is_none() {
+                        set.insert(loc);
+                    } else if valid_location(loc) && board.at_loc(loc).unwrap().player != self.player {
+                        set.insert(loc);
+                        k = k + 1;
+                        i = row as i32;
+                        j = col as i32;
                     } else {
-                        let loc = Location::new(i.try_into().unwrap(), j.try_into().unwrap());
-                        if valid_location(loc) && board.at_loc(loc).is_none() {
-                            set.insert(loc);
-                        }  else if valid_location(loc) && board.at_loc(loc).unwrap().player != self.player {
-                            set.insert(loc);
-                            k = k+1;
-                            i = row.try_into().unwrap();
-                            j = col.try_into().unwrap();
-                        } else {
-                            k = k+1;
-                            i = row.try_into().unwrap();
-                            j = col.try_into().unwrap();
-                        }
+                        k = k + 1;
+                        i = row as i32;
+                        j = col as i32;
                     }
                 }
+                set
             },
             PieceType::Queen => {
-                
-
+                let mut r: i32 = row as i32;
+                let mut c: i32 = col as i32;
+                let mut k = 0;
+                while k < 9 {
+                    let i: i32 = (k / 3) - 1;
+                    let j: i32 = (k % 3) - 1;
+                    r = r + i;
+                    c = c + j;
+                    if k == 4 || r < 0 || c < 0 {
+                        r = row as i32;
+                        c = col as i32;
+                        k = k + 1;
+                        continue;
+                    }
+                    let loc = Location::new(r.try_into().unwrap(), c.try_into().unwrap());
+                    if valid_location(loc) && board.at_loc(loc).is_none() {
+                        set.insert(loc);
+                    } else if valid_location(loc) && board.at_loc(loc).unwrap().player != self.player {
+                        set.insert(loc);
+                        r = row as i32;
+                        c = col as i32;
+                        k = k + 1;
+                    } else {
+                        r = row as i32;
+                        c = col as i32;
+                        k = k + 1;
+                    }
+                }
                 set
             },
             PieceType::King => {
-                let mut k = 0;
-                while k < 8 {
-                    let mut i: usize = 8;
-                    let mut j: usize = 8;
-                    if k == 0 {
-                        if row > 0 && col > 0 {
-                            i = row - 1;
-                            j = col - 1;
-                        }
-                    } else if k == 1 {
-                        i = row;
-                        if col > 0 {
-                            j = col - 1;
-                        }
-                    } else if k == 2 {
-                        i = row + 1;
-                        if col > 0 {
-                            j = col - 1;
-                        }
-                    } else if k == 3 {
-                        if row > 0 {
-                            i = row - 1;
-                        }
-                        j = col;
-                    } else if k == 4 {
-                        i = row + 1;
-                        j = col;
-                    } else if k == 5 {
-                        if row > 0 {
-                            i = row - 1;
-                        }
-                        j = col + 1;
-                    } else if k == 6 {
-                        i = row;
-                        j = col + 1;
-                    } else if k == 7 {
-                        i = row + 1;
-                        j = col + 1;
+                for k in 0 .. 9 {
+                    let r: i32 = (row as i32) + (k / 3) - 1;
+                    let c: i32 = (col as i32) + (k % 3) - 1;
+                    if k == 4 || r < 0 || c < 0 {
+                        continue;
                     }
-
-                    let loc = Location::new(i,j);
+                    println!("what {}, {}", r, c);
+                    let loc = Location::new(r.try_into().unwrap(),c.try_into().unwrap());
                     if valid_location(loc) && (board.at_loc(loc).is_none() || board.at_loc(loc).unwrap().player != self.player) {
                         set.insert(loc);
                     }
-
-                    k = k+1;
                 }
                 set
             }

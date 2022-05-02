@@ -16,7 +16,7 @@ pub fn main() {
         let start = start_pair.1;
         let piece = board.at_loc(start);
         if piece.is_none() || piece.unwrap().player != player {
-            println!("Invalid location. (5) Try again.");
+            println!("Invalid location - No valid piece at location. Try again.");
             continue;
         }
 
@@ -25,11 +25,7 @@ pub fn main() {
         let end_coord = end_pair.0;
         let end = end_pair.1;
         if piece.unwrap().range(&mut board).contains(&end) {
-            let result = board.move_to(piece.unwrap(), end);
-            if result.is_err() {
-                println!("Unknown error. (7) Try again.");
-                continue;
-            }
+            board.move_to(piece.unwrap(), end);
             println!("Moved {:?} {:?} from {} to {}", 
             piece.unwrap().player, piece.unwrap().name, start_coord.to_ascii_uppercase(), end_coord.to_ascii_uppercase());
             if piece.unwrap().name == PieceType::Pawn && (end.row == 0 || end.row == 7) {
@@ -37,7 +33,7 @@ pub fn main() {
                 println!("Pawn became Queen at {}", end_coord.to_ascii_uppercase());
             }
         } else {
-            println!("Invalid location. (6) Try again.");
+            println!("Invalid location - Not in range. Try again.");
             continue;
         }
 
