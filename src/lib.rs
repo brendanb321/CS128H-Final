@@ -80,15 +80,7 @@ impl Board {
     pub fn at(&mut self, row: usize, col: usize) -> Option<Piece> {
         self.board[row][col]
     }
-
-    pub fn empty_loc (&mut self, location: Location) -> bool {
-        self.at_loc(location).is_none()
-    }
-
-    pub fn empty(&mut self, row: usize, col: usize) -> bool {
-        self.at_loc(Location { row, col }).is_none()
-    }
-
+    
     pub fn move_to(&mut self, mut piece: Piece, new_location: Location) -> Result<(), InvalidMove> {
         // check if move is valid
         if !valid_location(new_location) {
@@ -164,31 +156,8 @@ impl Piece {
         Self{name, player, location}
     }
 
-    pub fn move_to(&mut self, new_location: &Location, board: &mut Board) -> Result<(), InvalidMove> {
-        // check if move is valid
-        if !valid_location(*new_location) {
-            return Err(InvalidMove::OutOfBounds)
-        } else if board.at_loc(*new_location).is_some() && board.at_loc(*new_location).unwrap().player == self.player {
-            return Err(InvalidMove::AlreadyOccupiedBySamePlayer)
-        } else {
-            // make sure the new_location is in the range of the piece
-            let range = self.range(board);
-            if range.contains(new_location) {
-                if !board.empty_loc(*new_location) {
-                    // do something with board.at_loc(new_location)
-                    if self.move_to(new_location, board).is_err() {
-                        panic!();
-                    }
-                }
-            }
-            
-        }
-        Ok(())
-    }
-
     pub fn range(&mut self, board: &mut Board) -> HashSet<Location> {
-        // use a set
-        // bulk of the work
+        
         let mut set: HashSet<Location> = std::collections::HashSet::new();
         let row = self.location.row;
         let col = self.location.col;

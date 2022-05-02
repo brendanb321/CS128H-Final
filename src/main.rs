@@ -1,10 +1,4 @@
-//use std::{io::Read, ascii::AsciiExt};
-
-use std::ascii::AsciiExt;
-
-use cs128_final::{PieceType,Piece};
-#[warn(unused_imports)]
-use cs128_final::{Board, Player, Location};
+use cs128_final::{Board, Player, Location, PieceType, Piece};
 pub fn main() {
     let mut board: Board = Board::new();
     let mut player = Player::Player1;
