@@ -177,14 +177,13 @@ impl Piece {
                 let mut i: i32 = row as i32;
                 let mut j: i32 = col as i32;
                 let mut k = 0;
-                loop {
+                while k < 4 {
                     if k < 2 {
                         i = i + (-1 as i32).pow(k);
-                    } else if k < 4 {
-                        j = j + (-1 as i32).pow(k);
                     } else {
-                        return set;
+                        j = j + (-1 as i32).pow(k);
                     }
+
                     if i < 0 || j < 0 {
                         k = k+1;
                         i = row as i32;
@@ -205,6 +204,7 @@ impl Piece {
                         j = col as i32;
                     }
                 }
+                set
             },
             PieceType::Knight => {
                 for k in 0 .. 8 {
@@ -220,6 +220,9 @@ impl Piece {
                         c = c + 2 * (-1 as i32).pow(k/2);
                     }
 
+                    if r < 0 || c < 0 {
+                        continue;
+                    }
                     let loc = Location::new(r.try_into().unwrap(),c.try_into().unwrap());
                     if valid_location(loc) && (board.at_loc(loc).is_none() 
                     || board.at_loc(loc).unwrap().player != self.player) {
@@ -295,7 +298,6 @@ impl Piece {
                     if k == 4 || r < 0 || c < 0 {
                         continue;
                     }
-                    println!("what {}, {}", r, c);
                     let loc = Location::new(r.try_into().unwrap(),c.try_into().unwrap());
                     if valid_location(loc) && (board.at_loc(loc).is_none() || board.at_loc(loc).unwrap().player != self.player) {
                         set.insert(loc);

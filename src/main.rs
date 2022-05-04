@@ -37,11 +37,19 @@ pub fn main() {
             continue;
         }
 
-        //if player == Player::Player1 {
-        //    player = Player::Player2;
-        //} else {
-        //    player = Player::Player1;
-        //}
+        if contains_king(Player::Player1, board) && contains_king(Player::Player2, board) {
+            // swap turns
+            if player == Player::Player1 {
+                player = Player::Player2;
+            } else {
+                player = Player::Player1;
+            }
+            continue;
+        } else {
+            println!("Game Over. {:?} wins.", player);
+            break;
+        }
+
     }
 }
 
@@ -77,4 +85,18 @@ pub fn read_input_location() -> (String, Location) {
         
         return (copy, Location::new(row, col));
     }
+}
+
+pub fn contains_king(player: Player, mut board: Board) -> bool {
+    for i in 0 .. 8 {
+        for j in 0 .. 8 {
+            if board.at(i,j).is_some() {
+                let piece = board.at(i,j).unwrap();
+                if piece.player == player && piece.name == PieceType::King {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
