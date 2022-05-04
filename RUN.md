@@ -1,7 +1,7 @@
 # How to run this project
 
 ## Connect to CS 128 environment
-I will not go into much detail here. Unfortunately, I do not have neither the patience nor the time to research how to avoid this. Navigate to the `kb(~/src)` directory.
+I will not go into much detail here. Unfortunately, I do not have neither the patience nor the time to research how to avoid this. Navigate to the `~/src` directory.
 ## Clone the project
 Try one of these two commands: (one is for HTTPS and one is for SSH)
 ```bash
